@@ -3,7 +3,8 @@ name = "overlap-chunk"
 version = "0.0.1"
 edition = "2024"
 authors = ["Katsuhiro Honda<freewave3@gmail.com>"]
-description = "A library for chunking text with configurable overlap"
+description = "A Rust library for splitting text into chunks of specified size with adjustable overlap percentage."
+
 license = "MIT"
 repository = "https://github.com/e-bebe/overlap-chunk"
 keywords = ["text", "chunking", "overlap"]

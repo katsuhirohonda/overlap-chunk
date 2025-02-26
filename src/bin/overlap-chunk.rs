@@ -1,4 +1,4 @@
-use overlap_chunk::{chunk_text, ChunkOptions};
+use overlap_chunk::{ChunkOptions, chunk_text};
 use std::env;
 use std::fs;
 use std::io::{self, Read};
@@ -6,19 +6,19 @@ use std::process;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    
-    // 引数の解析
+
+    // Parse arguments
     if args.len() < 2 {
         print_usage();
         process::exit(1);
     }
 
-    // コマンドラインオプションの解析
-    let mut chunk_size = 100; // デフォルトのチャンクサイズ
-    let mut overlap_percentage = 0; // デフォルトはオーバーラップなし
+    // Parse command line options
+    let mut chunk_size = 100; // Default chunk size
+    let mut overlap_percentage = 0; // Default is no overlap
     let mut input_file = None;
-
     let mut i = 1;
+
     while i < args.len() {
         match args[i].as_str() {
             "-h" | "--help" => {
@@ -30,28 +30,32 @@ fn main() {
                     match args[i + 1].parse::<usize>() {
                         Ok(size) => chunk_size = size,
                         Err(_) => {
-                            eprintln!("エラー: チャンクサイズは数値である必要があります");
+                            eprintln!("Error: Chunk size must be a number");
                             process::exit(1);
                         }
                     }
                     i += 2;
                 } else {
-                    eprintln!("エラー: --size オプションには値が必要です");
+                    eprintln!("Error: --size option requires a value");
                     process::exit(1);
                 }
             }
             "-o" | "--overlap" => {
                 if i + 1 < args.len() {
                     match args[i + 1].parse::<u8>() {
-                        Ok(percentage) if percentage <= 100 => overlap_percentage = percentage,
-                        _ => {
-                            eprintln!("エラー: オーバーラップは0〜100の数値である必要があります");
+                        Ok(percentage) if percentage <= 90 => overlap_percentage = percentage,
+                        Ok(_) => {
+                            eprintln!("Error: Overlap percentage must be between 0 and 90");
+                            process::exit(1);
+                        }
+                        Err(_) => {
+                            eprintln!("Error: Overlap must be a number between 0 and 90");
                             process::exit(1);
                         }
                     }
                     i += 2;
                 } else {
-                    eprintln!("エラー: --overlap オプションには値が必要です");
+                    eprintln!("Error: --overlap option requires a value");
                     process::exit(1);
                 }
             }
@@ -60,55 +64,53 @@ fn main() {
                 i += 1;
             }
             _ => {
-                eprintln!("エラー: 不明なオプション: {}", args[i]);
+                eprintln!("Error: Unknown option: {}", args[i]);
                 print_usage();
                 process::exit(1);
             }
         }
     }
 
-    // テキストの読み込み
+    // Read text
     let text = match input_file {
         Some(filename) => match fs::read_to_string(&filename) {
             Ok(content) => content,
             Err(e) => {
-                eprintln!("ファイル '{}' の読み込みエラー: {}", filename, e);
+                eprintln!("Error reading file '{}': {}", filename, e);
                 process::exit(1);
             }
         },
         None => {
-            // 標準入力から読み込み
+            // Read from standard input
             let mut buffer = String::new();
             match io::stdin().read_to_string(&mut buffer) {
                 Ok(_) => buffer,
                 Err(e) => {
-                    eprintln!("標準入力の読み込みエラー: {}", e);
+                    eprintln!("Error reading from standard input: {}", e);
                     process::exit(1);
                 }
             }
         }
     };
 
-    // オプションの設定
-    let options = ChunkOptions {
-        overlap_percentage,
-    };
+    // Set options
+    let options = ChunkOptions { overlap_percentage };
 
-    // テキストのチャンク分割
+    // Split text into chunks
     let chunks = chunk_text(&text, chunk_size, Some(options));
 
-    // 結果の出力
+    // Output results
     for (i, chunk) in chunks.iter().enumerate() {
-        println!("チャンク {}: {}", i + 1, chunk);
+        println!("Chunk {}: {}", i + 1, chunk);
     }
 }
 
 fn print_usage() {
-    println!("使用方法: overlap-chunk [オプション] [ファイル]");
-    println!("  ファイルを指定しない場合は標準入力から読み込みます");
+    println!("Usage: overlap-chunk [OPTIONS] [FILE]");
+    println!("  If no file is specified, read from standard input");
     println!();
-    println!("オプション:");
-    println!("  -h, --help              このヘルプメッセージを表示します");
-    println!("  -s, --size SIZE         チャンクサイズを指定します (デフォルト: 100)");
-    println!("  -o, --overlap PERCENT   オーバーラップの割合を0〜100で指定します (デフォルト: 0)");
+    println!("Options:");
+    println!("  -h, --help              Display this help message");
+    println!("  -s, --size SIZE         Specify chunk size (default: 100)");
+    println!("  -o, --overlap PERCENT   Specify overlap percentage between 0 and 90 (default: 0)");
 }

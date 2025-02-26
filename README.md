@@ -1,41 +1,39 @@
 # overlap-chunk
+A Rust library for splitting text into chunks of specified size with adjustable overlap percentage.
 
-テキストを指定されたサイズでチャンク分割するRustライブラリ。オーバーラップの割合を調整できます。
+## Features
 
-## 特徴
+### Current Features
+* Basic functionality to split text into chunks of specified size
+* Option to adjust the overlap percentage between chunks
+  
+### Future Features
+* Chunking that respects word boundaries and sentence boundaries
+* Support for multilingual text
+* Support for streaming input
 
-### 現在の機能
-* テキストを指定されたサイズでチャンク分割する基本機能
-* オーバーラップの割合を調整できるオプション
-
-### 将来的な機能
-* 単語境界やセンテンス境界を尊重したチャンキング
-* 多言語テキストのサポート
-* ストリーミング入力への対応
-
-## 使用例
+## Usage Examples
 
 ```rust
 use overlap_chunk::ChunkOptions;
 use overlap_chunk::chunk_text;
 
 fn main() {
-    let text = \"これはテストテキストです。長いテキストを小さなチャンクに分割します。\";
+    let text = "This is a test text. We will split this long text into smaller chunks.";
     
-    // デフォルトオプションでチャンク分割（オーバーラップなし）
+    // Chunk splitting with default options (no overlap)
     let chunks = chunk_text(text, 10, None);
-    println!(\"{:?}\", chunks);
+    println!("{:?}", chunks);
     
-    // オーバーラップありでチャンク分割（50%オーバーラップ）
+    // Chunk splitting with overlap (50% overlap)
     let options = ChunkOptions {
         overlap_percentage: 50,
         ..Default::default()
     };
     let chunks_with_overlap = chunk_text(text, 10, Some(options));
-    println!(\"{:?}\", chunks_with_overlap);
+    println!("{:?}", chunks_with_overlap);
 }
 ```
 
-## ライセンス
-
+## License
 MIT License
