@@ -31,14 +31,14 @@ impl Default for ChunkOptions {
 ///
 /// let text = "これはテストテキストです。長いテキストを小さなチャンクに分割します。";
 /// let chunks = chunk_text(text, 10, None);
-/// assert_eq!(chunks.len(), 5);
+/// assert_eq!(chunks.len(), 4);
 ///
 /// let options = ChunkOptions {
 ///     overlap_percentage: 50,
 ///     ..Default::default()
 /// };
 /// let chunks_with_overlap = chunk_text(text, 10, Some(options));
-/// assert_eq!(chunks_with_overlap.len(), 9);
+/// assert_eq!(chunks_with_overlap.len(), 7);
 /// ```
 pub fn chunk_text(text: &str, chunk_size: usize, options: Option<ChunkOptions>) -> Vec<String> {
     if text.is_empty() || chunk_size == 0 {
@@ -59,7 +59,7 @@ pub fn chunk_text(text: &str, chunk_size: usize, options: Option<ChunkOptions>) 
 
     // オーバーラップサイズを計算
     let overlap_size =
-        (chunk_size as f64 * options.overlap_percentage as f64 / 100.0).round() as usize;
+        (chunk_size as f64 * options.overlap_percentage as f64 / 100.0).floor() as usize;
 
     // オーバーラップを考慮したステップサイズを計算
     let step_size = if overlap_size >= chunk_size {
@@ -79,11 +79,6 @@ pub fn chunk_text(text: &str, chunk_size: usize, options: Option<ChunkOptions>) 
 
         // 次のチャンクの開始位置を計算
         start += step_size;
-
-        // 最後のチャンクを作成した場合は終了
-        if start >= total_chars {
-            break;
-        }
     }
 
     chunks
@@ -113,14 +108,13 @@ mod tests {
         let chunks = chunk_text(text, 10, None);
 
         // 正確なチャンク数を確認
-        assert_eq!(chunks.len(), 5);
+        assert_eq!(chunks.len(), 4);
 
         // 各チャンクの内容を確認
         assert_eq!(chunks[0], "これはテストテキスト");
-        assert_eq!(chunks[1], "です。長いテキス");
-        assert_eq!(chunks[2], "トを小さなチャン");
-        assert_eq!(chunks[3], "クに分割しま");
-        assert_eq!(chunks[4], "す。");
+        assert_eq!(chunks[1], "です。長いテキストを");
+        assert_eq!(chunks[2], "小さなチャンクに分割");
+        assert_eq!(chunks[3], "します。");
     }
 
     #[test]
@@ -133,13 +127,13 @@ mod tests {
         let chunks = chunk_text(text, 10, Some(options));
 
         // オーバーラップがあるので、チャンク数が増える
-        assert!(chunks.len() > 5);
+        assert!(chunks.len() > 4);
 
         // 最初のチャンクを確認
         assert_eq!(chunks[0], "これはテストテキスト");
 
         // 2番目のチャンクが最初のチャンクとオーバーラップしていることを確認
-        assert!(chunks[1].starts_with("テキスト"));
+        assert!(chunks[1].starts_with("テスト"));
     }
 
     #[test]
@@ -152,10 +146,11 @@ mod tests {
         let chunks = chunk_text(text, 5, Some(options));
 
         // 完全オーバーラップ（ステップサイズ1）の場合、チャンク数は (文字数 - チャンクサイズ + 1)
-        assert_eq!(chunks.len(), text.chars().count() - 5 + 1);
+        let expected_count = text.chars().count() - 5 + 1;
+        assert_eq!(chunks.len(), expected_count);
 
         // 各チャンクが1文字ずつずれていることを確認
         assert_eq!(chunks[0], "これはテス");
-        assert_eq!(chunks[1], "はテスト");
+        assert_eq!(chunks[1], "れはテスト");
     }
 }
