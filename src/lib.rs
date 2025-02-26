@@ -31,14 +31,14 @@ impl Default for ChunkOptions {
 ///
 /// let text = "This is a test text. We will split this long text into smaller chunks.";
 /// let chunks = chunk_text(text, 10, None);
-/// assert_eq!(chunks.len(), 6);
+/// assert_eq!(chunks.len(), 7);
 ///
 /// let options = ChunkOptions {
 ///     overlap_percentage: 50,
 ///     ..Default::default()
 /// };
 /// let chunks_with_overlap = chunk_text(text, 10, Some(options));
-/// assert_eq!(chunks_with_overlap.len(), 11);
+/// assert_eq!(chunks_with_overlap.len(), 14);
 /// ```
 pub fn chunk_text(text: &str, chunk_size: usize, options: Option<ChunkOptions>) -> Vec<String> {
     if text.is_empty() || chunk_size == 0 {
@@ -105,7 +105,7 @@ mod tests {
         let text = "This is a test text. We will split this long text into smaller chunks.";
         let chunks = chunk_text(text, 10, None);
         // Check the exact number of chunks
-        assert_eq!(chunks.len(), 6);
+        assert_eq!(chunks.len(), 7);
         // Check the content of each chunk
         assert_eq!(chunks[0], "This is a ");
         assert_eq!(chunks[1], "test text.");
@@ -113,6 +113,7 @@ mod tests {
         assert_eq!(chunks[3], "plit this ");
         assert_eq!(chunks[4], "long text ");
         assert_eq!(chunks[5], "into small");
+        assert_eq!(chunks[6], "er chunks.");
     }
 
     #[test]
@@ -123,9 +124,9 @@ mod tests {
             ..Default::default()
         };
         let chunks = chunk_text(text, 10, Some(options));
-        assert_eq!(chunks.len(), 11);
-        // Check overlap - second chunk should start with "test"
-        assert!(chunks[1].starts_with("test"));
+        assert_eq!(chunks.len(), 14);
+        // Check overlap - second chunk should start with "is a"
+        assert!(chunks[1].starts_with("is a "));
     }
 
     #[test]
@@ -137,6 +138,8 @@ mod tests {
         };
         let chunks = chunk_text(text, 5, Some(options));
         // With 100% overlap (step size 1), number of chunks should be: total_chars - chunk_size + 1
-        assert_eq!(chunks.len(), text.chars().count() - 5 + 1);
+        let expected_chunks = text.chars().count() - 5 + 1;
+        assert_eq!(chunks.len(), expected_chunks);
+        assert_eq!(chunks.len(), 66);
     }
 }
