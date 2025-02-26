@@ -9,7 +9,7 @@ repository = "https://github.com/e-bebe/overlap-chunk"
 keywords = ["text", "chunking", "overlap"]
 categories = ["text-processing"]
 
-[[lib]]
+[lib]
 name = "overlap_chunk"
 path = "src/lib.rs"
 
