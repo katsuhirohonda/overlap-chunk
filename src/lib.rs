@@ -1,6 +1,6 @@
 #[derive(Debug, Clone)]
 pub struct ChunkOptions {
-    /// Overlap percentage (0-100%)
+    /// Overlap percentage (0-90%)
     pub overlap_percentage: u8,
 }
 
@@ -45,7 +45,12 @@ pub fn chunk_text(text: &str, chunk_size: usize, options: Option<ChunkOptions>) 
         return vec![];
     }
 
-    let options = options.unwrap_or_default();
+    let mut options = options.unwrap_or_default();
+
+    // Limit overlap to 90%
+    if options.overlap_percentage > 90 {
+        options.overlap_percentage = 90;
+    }
 
     // Convert to character vector for proper handling
     let chars: Vec<char> = text.chars().collect();
@@ -63,7 +68,8 @@ pub fn chunk_text(text: &str, chunk_size: usize, options: Option<ChunkOptions>) 
 
     // Calculate step size considering overlap
     let step_size = if overlap_size >= chunk_size {
-        1 // Minimum step size
+        // Even with maximum overlap (90%), ensure minimum step size
+        (chunk_size as f64 * 0.1).ceil() as usize
     } else {
         chunk_size - overlap_size
     };
@@ -130,16 +136,23 @@ mod tests {
     }
 
     #[test]
-    fn test_full_overlap() {
+    fn test_max_overlap() {
         let text = "This is a test text. We will split this long text into smaller chunks.";
         let options = ChunkOptions {
+            overlap_percentage: 90,
+            ..Default::default()
+        };
+        let chunks = chunk_text(text, 10, Some(options));
+        // With 90% overlap, step size is 1, so we should have a lot of chunks
+        assert!(chunks.len() > 20);
+
+        // Test that values over 90% are capped
+        let over_max_options = ChunkOptions {
             overlap_percentage: 100,
             ..Default::default()
         };
-        let chunks = chunk_text(text, 5, Some(options));
-        // With 100% overlap (step size 1), number of chunks should be: total_chars - chunk_size + 1
-        let expected_chunks = text.chars().count() - 5 + 1;
-        assert_eq!(chunks.len(), expected_chunks);
-        assert_eq!(chunks.len(), 66);
+        let capped_chunks = chunk_text(text, 10, Some(over_max_options));
+        // Should be the same as 90% overlap
+        assert_eq!(chunks.len(), capped_chunks.len());
     }
 }
