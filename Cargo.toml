@@ -1,6 +1,6 @@
 [package]
 name = "overlap-chunk"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 authors = ["Katsuhiro Honda<freewave3@gmail.com>"]
 description = "A Rust library for splitting text into chunks of specified size with adjustable overlap percentage."
